@@ -17,7 +17,8 @@ module.exports = {
     "semi": [2, "never"],
     "prefer-const": "error",
     "spaced-comment": ["error", "always"],
-    "comma-dangle": ["error", "always-multiline"]
+    "comma-dangle": ["error", "always-multiline"],
+    "no-console": ["error", { allow: ["warn", "error"] }]
   },
   plugins: ['prettier'],
   overrides: [
