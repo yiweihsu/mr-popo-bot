@@ -35,7 +35,6 @@ const getRandomVideo = async () => {
 const getCovid19DataByCountry = async (country) => {
   try {
     const translatedText = await translate(country, { from: 'zh', to: 'en', engine: 'yandex', key: 'trnsl.1.1.20200411T153632Z.a582d2f96a2833f4.9424df4283896fa12b2ae4ba0e8bc3135d94fd30' })
-
     const sanitizedInpute = translatedText.toLowerCase()
     const mappedCountry =
       isoCountryCodeMapper.filter(country => {
@@ -80,7 +79,7 @@ async function HandleMessage(context) {
     }
   }
 
-  if (['hi', '你好', '嗨'].includes(text.toLowerCase())) {
+  if (['hi', '你好', '嗨', '哈囉'].includes(text.toLowerCase())) {
     await context.sendText(`嗨🤞`)
     await context.sendSticker({
       packageId: '1',
@@ -96,7 +95,7 @@ async function HandleMessage(context) {
   }
 
   if (['help', '幫助', '說明'].includes(text.toLowerCase())) {
-    await context.sendText('隔離在家如果覺得無聊，可以試試看輸入「武漢病毒」，瞭解目前病毒資訊，或是試試看輸入「看片」，也許會有意想不到的驚喜喔 😇')
+    await context.sendText('很高興認識你，我是機器人Mr.Popo 👋 \n\n隔離在家如果覺得無聊，可以試試看輸入「武漢病毒」，瞭解目前病毒資訊，或是試試看輸入「看片」，也許會有意想不到的驚喜喔 😇')
   }
 
   if (['porn', 'Porn', '看片'].includes(text)) {
@@ -134,6 +133,14 @@ async function HandleMessage(context) {
   if (['19', '病毒', 'covid', 'covid19', 'wuhan', 'virus', '武漢病毒', '武漢肺炎', '中國', 'wuhan virus'].includes(text.toLowerCase())) {
     await context.sendText(`🦠 可以試試看輸入國家名稱，就可以得到目前的病毒資訊喔。例如：台灣, 德國, USA, 加拿大, 日本, 義大利等.....`)
   }
+
+  if (['manshan', '敏珊', '林敏珊'].includes(text.toLowerCase())) {
+    const greetings = ['🚰 記得喝水噢！', '今天也很努力，辛苦了噢 😇', '待在家裡不容易吧，要加油噢 💪🏽', '沒事別亂出門 😖', '今天有上班嗎？💻', '要飛一下嗎？🥦']
+    
+    const randomGreetings = greetings[Math.floor(Math.random() * greetings.length)]
+
+    await context.sendText(`嗨，${text}，${randomGreetings}`)
+  }
 }
 
 async function HandleFollow(context) {
@@ -150,7 +157,7 @@ async function HandleJoin(context) {
     packageId: '1',
     stickerId: '4',
   })
-  await context.sendText('很高興認識大家，我是機器人Mr.Popo，隔離在家如果覺得無聊，可以試試看輸入「武漢病毒」，瞭解目前病毒資訊，或是試試看輸入「看片」，也許會有意想不到的驚喜喔 😇')
+  await context.sendText('很高興認識你，我是機器人Mr.Popo 👋 \n\n隔離在家如果覺得無聊，可以試試看輸入「武漢病毒」，瞭解目前病毒資訊，或是試試看輸入「看片」，也許會有意想不到的驚喜喔 😇')
 }
 async function HandleLeave(context) {
   await context.sendText('我走啦～有需要我的時候可以隨時再找我進來喔 👋')

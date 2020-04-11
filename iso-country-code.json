@@ -525,7 +525,7 @@
     "country-code": "360"
   },
   {
-    "name": "Iran (Islamic Republic of)",
+    "name": "Iran",
     "alpha-3": "IRN",
     "country-code": "364"
   },
@@ -915,7 +915,7 @@
     "country-code": "642"
   },
   {
-    "name": "Russian Federation",
+    "name": "Russian",
     "alpha-3": "RUS",
     "country-code": "643"
   },
@@ -1170,7 +1170,7 @@
     "country-code": "784"
   },
   {
-    "name": "United Kingdom of Great Britain and Northern Ireland",
+    "name": "UK",
     "alpha-3": "GBR",
     "country-code": "826"
   },
