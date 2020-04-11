@@ -1,5 +1,6 @@
 const { router, line } = require('bottender/router')
 const axios = require('axios')
+const moment = require('moment')
 
 module.exports = function App() {
   return router([
@@ -28,8 +29,35 @@ const getRandomVideo = async () => {
   }
 }
 
+const getCovid19DataByCountry = async (country) => {
+  try {
+    const COVID_API_BASE_URL = 'https://covidapi.info/api/v1/country/'
+    return axios.get(`${COVID_API_BASE_URL}/${country}`)
+  } catch (error) {
+    console.error(error)
+  }
+}
+
 async function HandleMessage(context) {
   const text = context.event.text
+
+  if (context.state.isProcess) {
+    const countryResult = await getCovid19DataByCountry(text)
+
+    if (!countryResult) {
+      return context.sendText('國家代碼可能輸入錯誤喔')
+    }
+
+    const today = moment().format('YYYY-MM-DD')
+    const yesterday = moment().subtract(1, 'days').format('YYYY-MM-DD')
+
+    const result = countryResult.data.result[today] ? countryResult.data.result[today] : countryResult.data.result[yesterday]
+    const { confirmed, deaths, recovered } = result
+
+    await context.sendText(`資料更新日期：${today}\n確診：${confirmed}\n死亡：${deaths}\n已治癒：${recovered}`)
+
+    context.resetState()
+  }
 
   if (['hi', 'Hi', '你好', '嗨'].includes(text)) {
     await context.sendText(`嗨🤞`)
@@ -37,6 +65,8 @@ async function HandleMessage(context) {
       packageId: '1',
       stickerId: '106',
     })
+
+    context.resetState()
   }
 
   if (['bye', 'goodbye', 'ciao', '掰', '拜', '再見'].includes(text)) {
@@ -65,7 +95,6 @@ async function HandleMessage(context) {
       video_url = videoContent.data.response.video.video_url      
       
       await context.sendText(`📼 影片名稱：${title}\n👍 觀看次數：${viewnumber}\n\n預覽如下 ⬇️`)
-
       await context.replyVideo({
         originalContentUrl,
         previewImageUrl,
@@ -75,6 +104,13 @@ async function HandleMessage(context) {
     } else {
       await context.sendText('影片好像壞掉了，有的時候會這樣，再試一次看看吧？🙇‍♂️')
     }
+  }
+
+  if (['19', '病毒', 'covid', 'covid19', '武漢病毒', '武漢肺炎', '中國'].includes(text)) {
+    await context.sendText(`🦠 想要知道哪一個國家的目前病毒的資訊呢？例如：TWN, DEU, USA, CHN）`)
+    context.setState({
+      isProcess: true,
+    })
   }
 }
 
@@ -92,7 +128,7 @@ async function HandleJoin(context) {
     packageId: '1',
     stickerId: '4',
   })
-  await context.sendText('隔離在家如果覺得無聊，不如試試看輸入「看片」，也許會有意想不到的驚喜喔 😇')
+  await context.sendText('隔離在家如果覺得無聊，可以試試看輸入「武漢病毒」，瞭解目前病毒資訊，或是試試看輸入「看片」，也許會有意想不到的驚喜喔 😇')
 }
 async function HandleLeave(context) {
   await context.sendText('我走啦～有需要我的時候可以隨時再找我進來喔 👋')
