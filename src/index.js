@@ -150,7 +150,7 @@ async function HandleJoin(context) {
     packageId: '1',
     stickerId: '4',
   })
-  await context.sendText('隔離在家如果覺得無聊，可以試試看輸入「武漢病毒」，瞭解目前病毒資訊，或是試試看輸入「看片」，也許會有意想不到的驚喜喔 😇')
+  await context.sendText('很高興認識大家，我是機器人Mr.Popo，隔離在家如果覺得無聊，可以試試看輸入「武漢病毒」，瞭解目前病毒資訊，或是試試看輸入「看片」，也許會有意想不到的驚喜喔 😇')
 }
 async function HandleLeave(context) {
   await context.sendText('我走啦～有需要我的時候可以隨時再找我進來喔 👋')
