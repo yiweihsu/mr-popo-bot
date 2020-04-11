@@ -1,4 +1,5 @@
 const { router, line } = require('bottender/router')
+const translate = require('translate')
 const axios = require('axios')
 const moment = require('moment')
 
@@ -33,14 +34,16 @@ const getRandomVideo = async () => {
 
 const getCovid19DataByCountry = async (country) => {
   try {
-    const sanitizedInpute = country.toLowerCase()
+    const translatedText = await translate(country, { from: 'zh', to: 'en', engine: 'yandex', key: 'trnsl.1.1.20200411T153632Z.a582d2f96a2833f4.9424df4283896fa12b2ae4ba0e8bc3135d94fd30' })
+
+    const sanitizedInpute = translatedText.toLowerCase()
     const mappedCountry =
       isoCountryCodeMapper.filter(country => {
         if (country.name.toLowerCase() === sanitizedInpute || country['alpha-3'] === sanitizedInpute.toUpperCase()) {
           return country['alpha-3']
         }
       })
-
+    
     if (mappedCountry.length > 0) {
       const { 'alpha-3': countryCode, name } = mappedCountry[0]
       const COVID_API_BASE_URL = 'https://covidapi.info/api/v1/country'
@@ -61,20 +64,20 @@ const getCovid19DataByCountry = async (country) => {
 
 async function HandleMessage(context) {
   const text = context.event.text
-  
+
   const countryResult = await getCovid19DataByCountry(text)
   if (countryResult) {
     const today = moment().format('YYYY-MM-DD')
     const yesterday = moment().subtract(1, 'days').format('YYYY-MM-DD')
 
     if (countryResult.failed) {
-      await context.sendText('這個國家名稱或是代碼有存在，可是目前沒有資料可以顯示，抱歉噢🙇‍♂️')  
+      await context.sendText('這個國家名稱或是代碼有存在，可是目前沒有資料可以顯示，抱歉噢🙇‍♂️')
     } else {
       const result = countryResult.covidData.data.result[today] ? countryResult.covidData.data.result[today] : countryResult.covidData.data.result[yesterday]
       const { confirmed, deaths, recovered } = result
-  
-      await context.sendText(`國家：${countryResult.country}\n資料更新日期：${today}\n確診：${confirmed}\n死亡：${deaths}\n已治癒：${recovered}\n\n記得勤洗手，盡量待在家裡，出門戴口罩，注意安全噢 😇`) 
-    } 
+
+      await context.sendText(`國家：${countryResult.country}\n資料更新日期：${today}\n確診：${confirmed}\n死亡：${deaths}\n已治癒：${recovered}\n\n記得勤洗手，盡量待在家裡，出門戴口罩，注意安全噢 😇`)
+    }
   }
 
   if (['hi', '你好', '嗨'].includes(text.toLowerCase())) {
@@ -103,7 +106,7 @@ async function HandleMessage(context) {
     let title
     let viewnumber
     let video_url
-    
+
     videoContent = await getRandomVideo()
     while (!videoContent.data.response.video) {
       videoContent = await getRandomVideo()
@@ -114,8 +117,8 @@ async function HandleMessage(context) {
       previewImageUrl = videoContent.data.response.video.preview_url
       title = videoContent.data.response.video.title
       viewnumber = videoContent.data.response.video.viewnumber
-      video_url = videoContent.data.response.video.video_url      
-      
+      video_url = videoContent.data.response.video.video_url
+
       await context.sendText(`📼 影片名稱：${title}\n👍 觀看次數：${viewnumber}\n\n預覽如下 ⬇️`)
       await context.replyVideo({
         originalContentUrl,
@@ -129,7 +132,7 @@ async function HandleMessage(context) {
   }
 
   if (['19', '病毒', 'covid', 'covid19', 'wuhan', 'virus', '武漢病毒', '武漢肺炎', '中國', 'wuhan virus'].includes(text.toLowerCase())) {
-    await context.sendText(`🦠 可以試試看輸入國家名稱，就可以得到目前的病毒資訊喔。例如：Taiwan, Germany, USA, Canada, Japan, Italy等.....`)
+    await context.sendText(`🦠 可以試試看輸入國家名稱，就可以得到目前的病毒資訊喔。例如：台灣, 德國, USA, 加拿大, 日本, 義大利等.....`)
   }
 }
 
