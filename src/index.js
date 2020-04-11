@@ -2,6 +2,8 @@ const { router, line } = require('bottender/router')
 const axios = require('axios')
 const moment = require('moment')
 
+const isoCountryCodeMapper = require('../iso-country-code.json')
+
 module.exports = function App() {
   return router([
     line.message(HandleMessage),
@@ -31,35 +33,51 @@ const getRandomVideo = async () => {
 
 const getCovid19DataByCountry = async (country) => {
   try {
-    const COVID_API_BASE_URL = 'https://covidapi.info/api/v1/country/'
-    return axios.get(`${COVID_API_BASE_URL}/${country}`)
+    const sanitizedInpute = country.toLowerCase()
+    const mappedCountry =
+      isoCountryCodeMapper.filter(country => {
+        if (country.name.toLowerCase() === sanitizedInpute || country['alpha-3'] === sanitizedInpute.toUpperCase()) {
+          return country['alpha-3']
+        }
+      })
+
+    if (mappedCountry.length > 0) {
+      const { 'alpha-3': countryCode, name } = mappedCountry[0]
+      const COVID_API_BASE_URL = 'https://covidapi.info/api/v1/country'
+      const covidData = await axios.get(`${COVID_API_BASE_URL}/${countryCode}`)
+
+      return {
+        country: name,
+        covidData,
+      }
+    }
   } catch (error) {
     console.error(error)
+    return {
+      failed: true,
+    }
   }
 }
 
 async function HandleMessage(context) {
   const text = context.event.text
-
-  if (context.state.isProcess) {
-    const countryResult = await getCovid19DataByCountry(text)
-
-    if (!countryResult) {
-      return context.sendText('國家代碼可能輸入錯誤喔')
-    }
-
+  
+  const countryResult = await getCovid19DataByCountry(text)
+  if (countryResult) {
     const today = moment().format('YYYY-MM-DD')
     const yesterday = moment().subtract(1, 'days').format('YYYY-MM-DD')
 
-    const result = countryResult.data.result[today] ? countryResult.data.result[today] : countryResult.data.result[yesterday]
-    const { confirmed, deaths, recovered } = result
-
-    await context.sendText(`資料更新日期：${today}\n確診：${confirmed}\n死亡：${deaths}\n已治癒：${recovered}`)
-
-    context.resetState()
+    if (countryResult.failed) {
+      await context.sendText('這個國家名稱或是代碼有存在，可是目前沒有資料可以顯示，抱歉噢🙇‍♂️')  
+    } else {
+      const result = countryResult.covidData.data.result[today] ? countryResult.covidData.data.result[today] : countryResult.covidData.data.result[yesterday]
+      const { confirmed, deaths, recovered } = result
+  
+      await context.sendText(`國家：${countryResult.country}\n資料更新日期：${today}\n確診：${confirmed}\n死亡：${deaths}\n已治癒：${recovered}\n\n記得勤洗手，盡量待在家裡，出門戴口罩，注意安全噢 😇`) 
+    } 
   }
 
-  if (['hi', 'Hi', '你好', '嗨'].includes(text)) {
+  if (['hi', '你好', '嗨'].includes(text.toLowerCase())) {
     await context.sendText(`嗨🤞`)
     await context.sendSticker({
       packageId: '1',
@@ -72,6 +90,10 @@ async function HandleMessage(context) {
   if (['bye', 'goodbye', 'ciao', '掰', '拜', '再見'].includes(text)) {
     await context.sendText('我走啦～有需要我的時候可以隨時再找我進來喔 👋')
     await context.leave()
+  }
+
+  if (['help', '幫助', '說明'].includes(text.toLowerCase())) {
+    await context.sendText('隔離在家如果覺得無聊，可以試試看輸入「武漢病毒」，瞭解目前病毒資訊，或是試試看輸入「看片」，也許會有意想不到的驚喜喔 😇')
   }
 
   if (['porn', 'Porn', '看片'].includes(text)) {
@@ -106,11 +128,8 @@ async function HandleMessage(context) {
     }
   }
 
-  if (['19', '病毒', 'covid', 'covid19', '武漢病毒', '武漢肺炎', '中國'].includes(text)) {
-    await context.sendText(`🦠 想要知道哪一個國家的目前病毒的資訊呢？例如：TWN, DEU, USA, CHN）`)
-    context.setState({
-      isProcess: true,
-    })
+  if (['19', '病毒', 'covid', 'covid19', 'wuhan', 'virus', '武漢病毒', '武漢肺炎', '中國', 'wuhan virus'].includes(text.toLowerCase())) {
+    await context.sendText(`🦠 可以試試看輸入國家名稱，就可以得到目前的病毒資訊喔。例如：Taiwan, Germany, USA, Canada, Japan, Italy等.....`)
   }
 }
 
